@@ -6,6 +6,7 @@
 #include "afxcmn.h"
 #include "afxwin.h"
 #include "math.h"
+#include <string>
 
 #define PTP_MAX 2
 #define PI 3.1415926
@@ -174,4 +175,12 @@ public:
 	afx_msg void OnBnClickedRadioCp();
 
 	afx_msg void OnBnClickedRadioBezier();
+	// X√‡ Vel ∞·¡§ Slide
+	CSliderCtrl m_sliX_vel;
+	CSliderCtrl m_sliX_acc;
+	CSliderCtrl m_sliX_dec;
+	CSliderCtrl m_sliY_vel;
+	CSliderCtrl m_sliY_acc;
+	CSliderCtrl m_sliY_dec;
+	afx_msg void OnNMReleasedcaptureSliXVel(NMHDR* pNMHDR, LRESULT* pResult);
 };

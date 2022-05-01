@@ -147,6 +147,12 @@ void CMy2017134025LJTDlg::DoDataExchange(CDataExchange* pDX)
 	DDX_Control(pDX, IDC_PC_STAGE, m_pcstage);
 	DDX_Control(pDX, IDC_BTN_POS_MOVE, m_btnPosMove);
 	DDX_Control(pDX, IDC_PRG_Y_HOME_RATE, m_prgYHomeRate);
+	DDX_Control(pDX, IDC_SLI_X_Vel, m_sliX_vel);
+	DDX_Control(pDX, IDC_SLI_X_Acc, m_sliX_acc);
+	DDX_Control(pDX, IDC_SLI_X_Dec, m_sliX_dec);
+	DDX_Control(pDX, IDC_SLI_Y_Vel, m_sliY_vel);
+	DDX_Control(pDX, IDC_SLI_Y_Acc, m_sliY_acc);
+	DDX_Control(pDX, IDC_SLI_Y_Dec, m_sliY_dec);
 }
 
 BEGIN_MESSAGE_MAP(CMy2017134025LJTDlg, CDialogEx)
@@ -179,6 +185,7 @@ BEGIN_MESSAGE_MAP(CMy2017134025LJTDlg, CDialogEx)
 	ON_BN_CLICKED(IDC_RADIO_PTP, &CMy2017134025LJTDlg::OnBnClickedRadioPtp)
 	ON_BN_CLICKED(IDC_RADIO_CP, &CMy2017134025LJTDlg::OnBnClickedRadioCp)
 	ON_BN_CLICKED(IDC_RADIO_Bezier, &CMy2017134025LJTDlg::OnBnClickedRadioBezier)
+	ON_NOTIFY(NM_RELEASEDCAPTURE, IDC_SLI_X_Vel, &CMy2017134025LJTDlg::OnNMReleasedcaptureSliXVel)
 END_MESSAGE_MAP()
 
 BOOL CMy2017134025LJTDlg::InitState()
@@ -279,6 +286,36 @@ BOOL CMy2017134025LJTDlg::InitState()
 	m_sliY.SetRange(0, nSliderEndPosY, FALSE);
 	m_sliX.SetPos(0);
 	m_sliY.SetPos(nSliderEndPosY);
+
+	// X, Y축 Vel, Acc, Dec 슬라이더를 초기화합니다.
+	m_sliX_vel.SetRange(0, 100, FALSE);
+	m_sliY_vel.SetRange(0, 100, FALSE);
+	m_sliX_vel.SetRangeMin(0);
+	m_sliY_vel.SetRangeMin(0);
+	m_sliX_vel.SetRangeMax(100);
+	m_sliY_vel.SetRangeMax(100);
+	m_sliX_vel.SetPos(DEFAULT_VEL);
+	m_sliY_vel.SetPos(DEFAULT_VEL);
+
+	m_sliX_acc.SetRange(0, 100, FALSE);
+	m_sliY_acc.SetRange(0, 100, FALSE);
+	m_sliX_acc.SetRangeMin(0);
+	m_sliY_acc.SetRangeMin(0);
+	m_sliX_acc.SetRangeMax(100);
+	m_sliY_acc.SetRangeMax(100);
+	m_sliX_acc.SetPos(DEFAULT_ACC);
+	m_sliY_acc.SetPos(DEFAULT_ACC);
+
+	m_sliX_dec.SetRange(0, 100, FALSE);
+	m_sliY_dec.SetRange(0, 100, FALSE);
+	m_sliX_dec.SetRangeMin(0);
+	m_sliY_dec.SetRangeMin(0);
+	m_sliX_dec.SetRangeMax(100);
+	m_sliY_dec.SetRangeMax(100);
+	m_sliX_dec.SetPos(DEFAULT_DEC);
+	m_sliY_dec.SetPos(DEFAULT_DEC);
+
+
 
 	// X, Y축의 이동 확인 변수를 초기화합니다.
 	m_bXIsMoving = FALSE;
@@ -1505,13 +1542,56 @@ m_prgXHomeRate.SetPos(0);
 void CMy2017134025LJTDlg::OnVScroll(UINT nSBCode, UINT nPos, CScrollBar* pScrollBar)
 {
 	// TODO: 여기에 메시지 처리기 코드를 추가 및/또는 기본값을 호출합니다.
+
+	int nValue = 0;
+
 	double dVel = 0.0, dAcc = 0.0, dDec = 0.0;
 	DWORD dwRetCode = 0, dwStatus = 0;
 	CString strResult;
+	
 
 	CSliderCtrl *pSlider = (CSliderCtrl *)pScrollBar;
 	double dPosY = 0.0;
 	int nSliderEndPosY = pSlider->GetRangeMax();
+
+	if (pScrollBar)
+	{
+		if (pScrollBar == (CScrollBar*)&m_sliX_vel)
+		{
+			nValue = m_sliX_vel.GetPos();
+			SetDlgItemDouble(IDC_EDT_X_INPUT_VEL, nValue, 1);
+		}
+
+		else if (pScrollBar == (CScrollBar*)&m_sliX_acc)
+		{
+			nValue = m_sliX_acc.GetPos();
+			SetDlgItemDouble(IDC_EDT_X_INPUT_ACC, nValue, 1);
+		}
+
+		else if (pScrollBar == (CScrollBar*)&m_sliX_dec)
+		{
+			nValue = m_sliX_dec.GetPos();
+			SetDlgItemDouble(IDC_EDT_X_INPUT_DEC, nValue, 1);
+		}
+
+		else if (pScrollBar == (CScrollBar*)&m_sliY_vel)
+		{
+			nValue = m_sliY_vel.GetPos();
+			SetDlgItemDouble(IDC_EDT_Y_INPUT_VEL, nValue, 1);
+		}
+
+		else if (pScrollBar == (CScrollBar*)&m_sliY_acc)
+		{
+			nValue = m_sliY_acc.GetPos();
+			SetDlgItemDouble(IDC_EDT_Y_INPUT_ACC, nValue, 1);
+		}
+
+		else if (pScrollBar == (CScrollBar*)&m_sliY_dec)
+		{
+			nValue = m_sliY_dec.GetPos();
+			SetDlgItemDouble(IDC_EDT_Y_INPUT_DEC, nValue, 1);
+		}
+	}
 
 	// 매 이벤트마다 마지막으로 자동호출되는 이벤트에만 작업을 수행합니다.
 	if (nSBCode != SB_ENDSCROLL)
@@ -1823,3 +1903,19 @@ UINT CMy2017134025LJTDlg::ThreadStart(LPVOID pParam)
 	return 0;
 }
 
+
+
+void CMy2017134025LJTDlg::OnNMReleasedcaptureSliXVel(NMHDR* pNMHDR, LRESULT* pResult)
+{
+	// TODO: 여기에 컨트롤 알림 처리기 코드를 추가합니다.
+	int xVel = m_sliX_vel.GetPos();
+	int xAcc = m_sliX_vel.GetPos();
+	int xDec = m_sliX_vel.GetPos();
+	int yVel = m_sliX_vel.GetPos();
+	int yAcc = m_sliX_vel.GetPos();
+	int yDec = m_sliX_vel.GetPos();
+
+
+
+	*pResult = 0;
+}
